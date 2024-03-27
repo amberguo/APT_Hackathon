@@ -27,11 +27,13 @@ class MainViewModel : ViewModel() {
     private var _maxResults: Int =
         ObjectDetectorHelper.MAX_RESULTS_DEFAULT
     private var _model: Int = ObjectDetectorHelper.MODEL_EFFICIENTDETV0
+    private var _overlapPosition: Int = 2
 
     val currentDelegate: Int get() = _delegate
     val currentThreshold: Float get() = _threshold
     val currentMaxResults: Int get() = _maxResults
     val currentModel: Int get() = _model
+    val currentOverlapPosition: Int get() = _overlapPosition
 
     fun setDelegate(delegate: Int) {
         _delegate = delegate
@@ -47,5 +49,8 @@ class MainViewModel : ViewModel() {
 
     fun setModel(model: Int) {
         _model = model
+    }
+    fun setOverlap(position: Int) {
+        _overlapPosition = position
     }
 }

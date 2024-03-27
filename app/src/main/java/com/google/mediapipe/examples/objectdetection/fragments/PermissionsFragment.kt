@@ -68,6 +68,18 @@ class PermissionsFragment : Fragment() {
                 requestPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
         }
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+//                navigateToAudioFragment()
+            }
+            else -> {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.RECORD_AUDIO)
+            }
+        }
     }
 
     private fun navigateToCamera() {

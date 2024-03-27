@@ -35,16 +35,18 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.google.mediapipe.examples.objectdetection.AudioClassifierHelper
 import com.google.mediapipe.examples.objectdetection.MainViewModel
 import com.google.mediapipe.examples.objectdetection.ObjectDetectorHelper
 import com.google.mediapipe.examples.objectdetection.R
 import com.google.mediapipe.examples.objectdetection.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.audio.core.RunningMode as AudioRunningMode
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
+class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioClassifierHelper.ClassifierListener {
 
     private val TAG = "ObjectDetection"
 
@@ -53,7 +55,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
 
+//    private var _fragmentBinding: FragmentRecorderBinding? = null
+//    private val fragmentRecorderBinding get() = _fragmentBinding!!
+
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
+    // private lateinit var audioClassifierHelper: AudioClassifierHelper
     private val viewModel: MainViewModel by activityViewModels()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -62,8 +68,10 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
+    private lateinit var audioBackgroundExecutor: ExecutorService
 
     override fun onResume() {
+        Log.e("Amber", "on resume")
         super.onResume()
         // Make sure that all permissions are still present, since the
         // user could have removed them while the app was in paused state.
@@ -74,17 +82,27 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             )
                 .navigate(CameraFragmentDirections.actionCameraToPermissions())
         }
-
         backgroundExecutor.execute {
             if (objectDetectorHelper.isClosed()) {
                 objectDetectorHelper.setupObjectDetector()
             }
         }
+
+        if (!PermissionsFragment.hasPermissions(requireContext())) {
+            Navigation.findNavController(
+                requireActivity(),
+                R.id.fragment_container
+            )
+                .navigate(R.id.action_permissions_to_camera)
+        }
+        audioBackgroundExecutor.execute {
+//;k
+        }
     }
 
     override fun onPause() {
         super.onPause()
-
+        Log.e("Amber", "onPause()")
         // save ObjectDetector settings
         if(this::objectDetectorHelper.isInitialized) {
             viewModel.setModel(objectDetectorHelper.currentModel)
@@ -95,6 +113,28 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             backgroundExecutor.execute { objectDetectorHelper.clearObjectDetector() }
         }
 
+
+//        if (this::audioClassifierHelper.isInitialized) {
+//            Log.e("Amber", "audioClassifierHelper is initialized")
+//        } else {
+//            Log.e("Amber", "audioClassifierHelper is NOT initialized")
+//        }
+//
+//        while (!this::audioClassifierHelper.isInitialized) {
+//        }
+//
+//        // save audio classifier settings
+//        viewModel.apply {
+//            setThreshold(audioClassifierHelper.classificationThreshold)
+//            setMaxResults(audioClassifierHelper.numOfResults)
+//            setOverlap(audioClassifierHelper.overlap)
+//        }
+//
+//        audioBackgroundExecutor.execute {
+//            if (::audioClassifierHelper.isInitialized) {
+//                audioClassifierHelper.stopAudioClassification()
+//            }
+//        }
     }
 
     override fun onDestroyView() {
@@ -107,6 +147,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             Long.MAX_VALUE,
             TimeUnit.NANOSECONDS
         )
+
+//        audioBackgroundExecutor.shutdown()
+//        audioBackgroundExecutor.awaitTermination(
+//            Long.MAX_VALUE, TimeUnit.NANOSECONDS
+//        )
     }
 
     override fun onCreateView(
@@ -114,6 +159,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.e("Amber", "onCreateView")
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
@@ -123,9 +169,13 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        Log.e("Amber", "onViewCreated 1")
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
+
+        audioBackgroundExecutor = Executors.newSingleThreadExecutor()
+        while(!::audioBackgroundExecutor.isInitialized) {
+        }
 
         // Create the ObjectDetectionHelper that will handle the inference
         backgroundExecutor.execute {
@@ -146,7 +196,20 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                 setUpCamera()
             }
         }
+        Log.e("Amber", "onViewCreated 2")
+//        audioBackgroundExecutor.execute {
+//            audioClassifierHelper =
+//                AudioClassifierHelper(
+//                    context = requireContext(),
+//                    classificationThreshold = viewModel.currentThreshold,
+//                    overlap = viewModel.currentOverlapPosition,
+//                    numOfResults = viewModel.currentMaxResults,
+//                    runningMode = AudioRunningMode.AUDIO_STREAM,
+//                    listener = this
+//                )
+//        }
 
+        Log.e("Amber", "onViewCreated 3")
         // Attach listeners to UI control widgets
         initBottomSheetControls()
         fragmentCameraBinding.overlay.setRunningMode(RunningMode.LIVE_STREAM)
@@ -372,6 +435,27 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                     ObjectDetectorHelper.DELEGATE_CPU, false
                 )
             }
+        }
+    }
+
+    // audio error
+    override fun onError(error: String) {
+//        activity?.runOnUiThread {
+//            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+//            probabilitiesAdapter.updateCategoryList(emptyList())
+//        }
+    }
+
+    // audio result
+    override fun onResult(resultBundle: AudioClassifierHelper.ResultBundle) {
+        activity?.runOnUiThread {
+//            if (_fragmentBinding != null) {
+//                resultBundle.results[0].classificationResults().first()
+//                    .classifications()?.get(0)?.categories()?.let {
+//                        // Show result on bottom sheet
+//                        probabilitiesAdapter.updateCategoryList(it)
+//                    }
+//            }
         }
     }
 }
