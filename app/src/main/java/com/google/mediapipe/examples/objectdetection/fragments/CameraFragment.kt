@@ -59,7 +59,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
 //    private val fragmentRecorderBinding get() = _fragmentBinding!!
 
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
-    // private lateinit var audioClassifierHelper: AudioClassifierHelper
+    private lateinit var audioClassifierHelper: AudioClassifierHelper
     private val viewModel: MainViewModel by activityViewModels()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -83,7 +83,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
                 .navigate(CameraFragmentDirections.actionCameraToPermissions())
         }
         backgroundExecutor.execute {
-            if (objectDetectorHelper.isClosed()) {
+            if (objectDetectorHelper.isClosed() || objectDetectorHelper == null ) {
                 objectDetectorHelper.setupObjectDetector()
             }
         }
@@ -95,9 +95,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
             )
                 .navigate(R.id.action_permissions_to_camera)
         }
-        audioBackgroundExecutor.execute {
-//;k
-        }
+//        audioBackgroundExecutor.execute {
+//            if (audioClassifierHelper.isClosed()) {
+//                audioClassifierHelper.initClassifier()
+//            }
+//        }
     }
 
     override fun onPause() {
@@ -119,10 +121,6 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
 //        } else {
 //            Log.e("Amber", "audioClassifierHelper is NOT initialized")
 //        }
-//
-//        while (!this::audioClassifierHelper.isInitialized) {
-//        }
-//
 //        // save audio classifier settings
 //        viewModel.apply {
 //            setThreshold(audioClassifierHelper.classificationThreshold)
@@ -160,6 +158,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
         savedInstanceState: Bundle?
     ): View {
         Log.e("Amber", "onCreateView")
+        Thread.sleep(10000)
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
@@ -174,8 +173,6 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener, AudioC
         backgroundExecutor = Executors.newSingleThreadExecutor()
 
         audioBackgroundExecutor = Executors.newSingleThreadExecutor()
-        while(!::audioBackgroundExecutor.isInitialized) {
-        }
 
         // Create the ObjectDetectionHelper that will handle the inference
         backgroundExecutor.execute {

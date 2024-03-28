@@ -71,26 +71,29 @@ class AudioClassifierHelper(
                     .setBaseOptions(baseOptions)
                     .setRunningMode(runningMode)
 
+            Log.e("Amber", "running mode " + runningMode.toString() + " 1")
             if (runningMode == RunningMode.AUDIO_STREAM) {
                 optionsBuilder
                     .setResultListener(this::streamAudioResultListener)
                     .setErrorListener(this::streamAudioErrorListener)
             }
-
+            Log.e("Amber", "running mode " + runningMode.toString() + " 1.5")
             val options = optionsBuilder.build()
-
             // Create the classifier and required supporting objects
             audioClassifier =
                 AudioClassifier.createFromOptions(context, options)
+            Log.e("Amber", "running mode " + runningMode.toString() + " 2")
             if (runningMode == RunningMode.AUDIO_STREAM) {
-
+                Log.e("Amber", "running mode " + runningMode.toString() + " 2.1")
                 recorder = audioClassifier!!.createAudioRecord(
                     AudioFormat.CHANNEL_IN_DEFAULT,
                     SAMPLING_RATE_IN_HZ,
                     BUFFER_SIZE_IN_BYTES.toInt())
-
+                Log.e("Amber", "running mode" + runningMode.toString() + " 2.2")
                 startAudioClassification()
+                Log.e("Amber", "running mode" + runningMode.toString() + " 2.5")
             }
+            Log.e("Amber", "running mode" + runningMode.toString() + " 3")
         } catch (e: IllegalStateException) {
             listener?.onError(
                 "Audio Classifier failed to initialize. See error logs for details"
@@ -108,9 +111,11 @@ class AudioClassifierHelper(
                 TAG, "MP task failed to load with error: " + e.message
             )
         }
+        Log.e("Amber", "audioClassifierHelper finished initClassifier()")
     }
 
     private fun startAudioClassification() {
+        Log.e("Amber", recorder?.recordingState.toString() + "  recorder state")
         if (recorder?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
             return
         }

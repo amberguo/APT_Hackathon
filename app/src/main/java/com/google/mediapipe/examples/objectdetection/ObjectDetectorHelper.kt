@@ -31,6 +31,7 @@ import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectorResult
+import java.util.Objects
 
 class ObjectDetectorHelper(
     var threshold: Float = THRESHOLD_DEFAULT,
@@ -110,6 +111,7 @@ class ObjectDetectorHelper(
             imageProcessingOptions = ImageProcessingOptions.builder()
                 .setRotationDegrees(imageRotation).build()
 
+            Log.e("AmberObject", runningMode.toString())
             when (runningMode) {
                 RunningMode.IMAGE, RunningMode.VIDEO -> optionsBuilder.setRunningMode(
                     runningMode
@@ -120,9 +122,15 @@ class ObjectDetectorHelper(
                 ).setResultListener(this::returnLivestreamResult)
                     .setErrorListener(this::returnLivestreamError)
             }
-
+            Log.e("AmberObject", "after set listener")
             val options = optionsBuilder.build()
+
+            Log.e("AmberObject", "after build option " + options.toString())
             objectDetector = ObjectDetector.createFromOptions(context, options)
+
+            // objectDetector = ObjectDetector.createFromFile(context, "../../../../../../../assets/efficientdet-lite0.tflite")
+            // objectDetector = ObjectDetector.createFromOptions(context, options)
+            Log.e("AmberObject", "after createFromOptions()")
         } catch (e: IllegalStateException) {
             objectDetectorListener?.onError(
                 "=Object detector failed to initialize. See error logs for details123"
@@ -133,6 +141,7 @@ class ObjectDetectorHelper(
                 "Object detector failed to initialize. See error logs for " + "details345" + e.message,
                 GPU_ERROR
             )
+            Log.e("Amber1234", e.message.toString())
             Log.e(
                 TAG,
                 "Object detector failed to load model with error: " + e.message
@@ -349,7 +358,7 @@ class ObjectDetectorHelper(
         const val MODEL_EFFICIENTDETV0 = 0
         const val MODEL_EFFICIENTDETV2 = 1
         const val MAX_RESULTS_DEFAULT = 3
-        const val THRESHOLD_DEFAULT = 0.5F
+        const val THRESHOLD_DEFAULT = 0.2F
         const val OTHER_ERROR = 0
         const val GPU_ERROR = 1
 

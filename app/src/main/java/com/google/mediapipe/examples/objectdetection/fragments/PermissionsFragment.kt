@@ -20,6 +20,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -57,29 +58,36 @@ class PermissionsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         when {
-            ContextCompat.checkSelfPermission(
+            (ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.CAMERA
             ) ==
-                    PackageManager.PERMISSION_GRANTED -> {
+                    PackageManager.PERMISSION_GRANTED) &&
+            (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED) -> {
                 navigateToCamera()
             }
             else -> {
                 requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
         }
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED -> {
-//                navigateToAudioFragment()
-            }
-            else -> {
-                requestPermissionLauncher.launch(
-                    Manifest.permission.RECORD_AUDIO)
-            }
-        }
+        Log.e("Amber", "in permission fragment before")
+//        when {
+//            ContextCompat.checkSelfPermission(
+//                requireContext(),
+//                Manifest.permission.RECORD_AUDIO
+//            ) == PackageManager.PERMISSION_GRANTED -> {
+////                navigateToAudioFragment()
+//            }
+//            else -> {
+//                requestPermissionLauncher.launch(
+//                    Manifest.permission.RECORD_AUDIO)
+//            }
+//        }
+        Log.e("Amber", "in permission fragment after")
     }
 
     private fun navigateToCamera() {
@@ -88,7 +96,8 @@ class PermissionsFragment : Fragment() {
                 requireActivity(),
                 R.id.fragment_container
             )
-                .navigate(PermissionsFragmentDirections.actionPermissionsToCamera())
+                //.navigate(PermissionsFragmentDirections.actionPermissionsToCamera())
+                .navigate(R.id.action_permissions_to_camera)
         }
     }
 
